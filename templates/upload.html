@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload New Post</title>
+    <style>
+        #paste-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #image-preview img {
+            max-height: 100px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload New Post</h1>
+    <div id="paste-area">Paste images here</div>
+    <div id="image-preview"></div>
+    <form id="upload-form" method="POST">
+        <input type="hidden" name="images" id="images-input">
+        <button type="submit">Upload Post</button>
+    </form>
+
+    <script>
+        const pasteArea = document.getElementById('paste-area');
+        const imagePreview = document.getElementById('image-preview');
+        const imagesInput = document.getElementById('images-input');
+        const uploadForm = document.getElementById('upload-form');
+        const images = [];
+
+        pasteArea.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        imagePreview.appendChild(img);
+                        images.push(event.target.result);
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        });
+
+        uploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            imagesInput.value = JSON.stringify(images);
+            uploadForm.submit();
+        });
+    </script>
+</body>
+</html>

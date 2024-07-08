@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Library</title>
+    <style>
+        .post {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .image-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+        }
+        .image-container img {
+            max-height: 300px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Library</h1>
+    <a href="{{ url_for('upload') }}">Upload New Post</a>
+    {% for post in posts %}
+        <div class="post">
+            <h2>Post {{ post.id }}</h2>
+            <div class="image-container">
+                {% for image in post.images %}
+                    <img src="{{ url_for('static', filename='posts/' + post.id + '/' + image) }}" alt="Image {{ loop.index }}">
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</body>
+</html>
