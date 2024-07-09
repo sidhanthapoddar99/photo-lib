@@ -1,4 +1,4 @@
-const grid = document.querySelector('.grid');
+// DOM elements
 const expandedPost = document.getElementById('expanded-post');
 const expandedPostContent = document.querySelector('.expanded-post-content');
 const closeButton = document.querySelector('.close-button');
@@ -6,210 +6,148 @@ const prevButton = document.querySelector('.prev-button');
 const nextButton = document.querySelector('.next-button');
 const nextPostButton = document.querySelector('.next-picture');
 const prevPostButton = document.querySelector('.prev-picture');
-
-
 const imageCounter = document.querySelector('.image-counter');
+
+// State variables
 let currentImageIndex = 0;
 let totalImages = 0;
-let image_array = [];
+let imageArray = [];
 let currentPostId = 0;
 
+// Constants
+const SWIPE_THRESHOLD = 50;
+const NAVIGATION_COOLDOWN = 500;
 
+// Event listeners
 prevButton.addEventListener('click', () => navigatePost(-1));
 nextButton.addEventListener('click', () => navigatePost(1));
-prevPostButton.addEventListener('click', () => Change_Post(1));
-nextPostButton.addEventListener('click', () => Change_Post(-1));
+prevPostButton.addEventListener('click', () => changePost(1));
+nextPostButton.addEventListener('click', () => changePost(-1));
+expandedPostContent.addEventListener('touchstart', handleTouchStart);
+expandedPostContent.addEventListener('touchend', handleTouchEnd);
+expandedPostContent.addEventListener('wheel', debounce(handleMouseScroll, 50));
+expandedPostContent.addEventListener('mousedown', handleMouseDown);
+document.addEventListener('mouseup', handleMouseUp);
+document.addEventListener('mousemove', handleMouseMove);
 
+// Touch events variables
+let touchStartX = 0;
+let touchStartY = 0;
 
-// ------------------------------------------------- Actions -------------------------------------------------------------
+// Mouse events variables
+let isScrolling = false;
+let scrollStartX = 0;
+let lastNavigationTime = 0;
 
-function set_image(imaage_no){
-
-    imgContainer = image_array[imaage_no];
+function setImage(imageIndex) {
     expandedPostContent.innerHTML = '';
-    expandedPostContent.appendChild(imgContainer);
-    console.log("called");
-
+    expandedPostContent.appendChild(imageArray[imageIndex]);
+    updateImageCounter();
 }
 
-
-function Change_Post(direction){
-
+function changePost(direction) {
     fetch(`/api/all_posts_list/${currentPostId}`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(post => {
-
-        if(direction == 1 && post.next != currentPostId)
-            window.location.href = `/posts/${post.next}`;
-        else if(direction == -1 && post.prev != currentPostId)
-            window.location.href = `/posts/${post.prev}`;
-        else
-            console.log("No more post available");
-
-    })
-    .catch(error => {
-        console.error('Failed to fetch post:', error);
-    });
+        .then(response => response.json())
+        .then(post => {
+            const nextPostId = direction === 1 ? post.next : post.prev;
+            if (nextPostId !== currentPostId) {
+                window.location.href = `/posts/${nextPostId}`;
+            } else {
+                console.log("No more posts available");
+            }
+        })
+        .catch(error => console.error('Failed to fetch post:', error));
 }
-
 
 function fetchAndDisplayPost(postId) {
-
-    console.log("trying to change to -- ",postId);
-
     fetch(`/api/posts/${postId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(post => {
-            
             totalImages = post.images.length;
             currentImageIndex = 0;
             currentPostId = postId;
-            post.images.forEach((image, index) => {
-
-                const imgContainer = document.createElement('div');                
+            imageArray = post.images.map(image => {
                 const img = document.createElement('img');
                 img.src = `/static/posts/${post.id}/${image}`;
                 img.style.objectFit = 'contain';
-                imgContainer.appendChild(img);
-                // image_array.push(imgContainer);
-                image_array.push(img);
-                set_image(0)
+                return img;
             });
-
-            updateImageCounter();
+            setImage(0);
             expandedPost.style.display = 'flex';
         })
-        .catch(error => {
-            console.error('Failed to fetch post:', error);
-        });
+        .catch(error => console.error('Failed to fetch post:', error));
 }
-
 
 function updateImageCounter() {
     imageCounter.textContent = `${currentImageIndex + 1}/${totalImages}`;
 }
 
 function navigatePost(direction) {
-
-
-    currentImageIndex += direction;
-    currentImageIndex = currentImageIndex < 0 ? totalImages - 1 : currentImageIndex % totalImages;
-    // Update current image index
-    set_image(currentImageIndex)
-    updateImageCounter();
+    currentImageIndex = (currentImageIndex + direction + totalImages) % totalImages;
+    setImage(currentImageIndex);
 }
 
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
 
-//--------------------------------------------- mobile swipe and scroll ---------------------------------------------------
+function handleTouchEnd(e) {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
 
-
-
-
-// Add this to the existing scroll event listener or create a new one
-expandedPostContent.addEventListener('scroll', () => {
-    const itemWidth = expandedPostContent.offsetWidth;
-    currentImageIndex = Math.round(expandedPostContent.scrollLeft / itemWidth);
-    updateImageCounter();
-});
-
-// mobile swipe
-
-
-let touchStartX = 0;
-let touchEndX = 0;
-
-expandedPostContent.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-});
-
-expandedPostContent.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-});
-
-function handleSwipe() {
-    const swipeThreshold = 50; // Minimum distance for a swipe
-    if (touchEndX < touchStartX - swipeThreshold) {
-        navigatePost(1); // Swipe left, go to next
-    } else if (touchEndX > touchStartX + swipeThreshold) {
-        navigatePost(-1); // Swipe right, go to previous
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+            navigatePost(deltaX > 0 ? -1 : 1);
+        }
+    } else {
+        if (Math.abs(deltaY) > SWIPE_THRESHOLD) {
+            changePost(deltaY > 0 ? 1 : -1);
+        }
     }
 }
 
-
-// scroll left and right
-
-let scrollStartX = 0;
-let scrollEndX = 0;
-let isScrolling = false;
-let lastNavigationTime = 0;
-const navigationCooldown = 500; // 500ms cooldown between navigations
-
-// Debounce function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-
-
-
-// Add mouse wheel event listener
-expandedPostContent.addEventListener('wheel', handleMouseScroll);
-
-
-
-
-// Add mousedown and mouseup event listeners to track horizontal scrolling
-expandedPostContent.addEventListener('mousedown', (e) => {
+function handleMouseDown(e) {
     scrollStartX = e.clientX;
     isScrolling = true;
-});
+}
 
-document.addEventListener('mouseup', () => {
+function handleMouseUp() {
     if (isScrolling) {
-        handleSwipe();
         isScrolling = false;
     }
-});
+}
 
-document.addEventListener('mousemove', (e) => {
+function handleMouseMove(e) {
     if (isScrolling) {
-        scrollEndX = e.clientX;
+        const deltaX = e.clientX - scrollStartX;
+        if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+            navigatePost(deltaX > 0 ? -1 : 1);
+            isScrolling = false;
+        }
     }
-});
-
-// Add debounced mouse wheel event listener
-expandedPostContent.addEventListener('wheel', debounce(handleMouseScroll, 50));
-
+}
 
 function handleMouseScroll(e) {
     e.preventDefault();
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     
-    if (currentTime - lastNavigationTime > navigationCooldown) {
-        if (e.deltaX > 0) {
-            navigatePost(1);
-        } else if (e.deltaX < 0) {
-            navigatePost(-1);
+    if (currentTime - lastNavigationTime > NAVIGATION_COOLDOWN) {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+            navigatePost(e.deltaX > 0 ? 1 : -1);
+        } else {
+            changePost(e.deltaY > 0 ? -1 : 1);
         }
         lastNavigationTime = currentTime;
     }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }
