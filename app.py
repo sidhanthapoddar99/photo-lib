@@ -96,6 +96,15 @@ def get_post(post_id):
         return jsonify({'error': 'Post not found'}), 404
 
 
+
+@app.route('/posts/<id>', methods=['GET'])
+def open_individual_post(id):
+    post_path = os.path.join(app.config['UPLOAD_FOLDER'], id)
+    # images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
+    return render_template('individual_post.html', id=id)
+
+
+
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     

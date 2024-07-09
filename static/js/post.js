@@ -10,17 +10,17 @@ const imageCounter = document.querySelector('.image-counter');
 let currentImageIndex = 0;
 let totalImages = 0;
 
-grid.addEventListener('click', (e) => {
-    const post = e.target.closest('.post');
-    if (post) {
-        const postId = post.dataset.postId;
-        fetchAndDisplayPost(postId);
-    }
-});
+// grid.addEventListener('click', (e) => {
+//     const post = e.target.closest('.post');
+//     if (post) {
+//         const postId = post.dataset.postId;
+//         fetchAndDisplayPost(postId);
+//     }
+// });
 
-closeButton.addEventListener('click', () => {
-    expandedPost.style.display = 'none';
-});
+// closeButton.addEventListener('click', () => {
+//     expandedPost.style.display = 'none';
+// });
 
 prevButton.addEventListener('click', () => navigatePost(-1));
 nextButton.addEventListener('click', () => navigatePost(1));
@@ -62,16 +62,6 @@ function fetchAndDisplayPost(postId) {
         });
 }
 
-// function navigatePost(direction) {
-//     const currentScroll = expandedPostContent.scrollLeft;
-//     const itemWidth = expandedPostContent.offsetWidth;
-//     const targetScroll = currentScroll + direction * itemWidth;
-    
-//     expandedPostContent.scrollTo({
-//         left: targetScroll,
-//         behavior: 'smooth'
-//     });
-// }
 
 
 function updateImageCounter() {
