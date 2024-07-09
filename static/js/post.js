@@ -75,7 +75,13 @@ function navigatePost(direction) {
 
     // Ensure we don't scroll beyond the content
     const maxScroll = expandedPostContent.scrollWidth - itemWidth;
+
+    
+
     targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+    // targetScroll = Math.max(0, targetScroll>maxScroll?0:targetScroll);
+
+
 
     expandedPostContent.scrollTo({
         left: targetScroll,
