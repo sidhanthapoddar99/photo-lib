@@ -11,13 +11,24 @@
 </head>
 <body>
 
-    <div id="expanded-post" class="expanded-post">
-        <a href={{ url_for("index") }}><button class="close-button">&times;</button></a>
-        <button class="nav-button prev-button">&lt;</button>
-        <div class="expanded-post-content"></div>
+    <div id="expanded-post" class="expanded-post" >
+        <div class="navigation_blocks" style="justify-content:flex-end">
+            <a href={{ url_for("index") }}><button class="close-button">&times;</button></a>
+        </div>
+
+        <div>
+            <div></div>
+            <div class="photo-level-1">
+                <button class="nav-button prev-button">&lt;</button>
+                <div class="expanded-post-content"></div>            
+                <button class="nav-button next-button">&gt;</button>
+            </div>
+            <div></div>
+        </div>
+
         <div class="image-counter"></div>
-        <button class="nav-button next-button">&gt;</button>
-    </div>
+    
+</div>
 
     <script src="{{ url_for('static', filename='js/post.js') }}"></script>
 

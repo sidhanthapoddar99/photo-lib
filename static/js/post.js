@@ -9,6 +9,7 @@ const nextButton = document.querySelector('.next-button');
 const imageCounter = document.querySelector('.image-counter');
 let currentImageIndex = 0;
 let totalImages = 0;
+let postID = 0;
 
 // grid.addEventListener('click', (e) => {
 //     const post = e.target.closest('.post');
@@ -26,6 +27,9 @@ prevButton.addEventListener('click', () => navigatePost(-1));
 nextButton.addEventListener('click', () => navigatePost(1));
 
 
+function set_image()
+
+
 function fetchAndDisplayPost(postId) {
     fetch(`/api/posts/${postId}`)
         .then(response => {
@@ -38,16 +42,18 @@ function fetchAndDisplayPost(postId) {
             expandedPostContent.innerHTML = '';
             totalImages = post.images.length;
             currentImageIndex = 0;
-            
+                        
             post.images.forEach((image, index) => {
+
                 const imgContainer = document.createElement('div');
                 imgContainer.style.flex = '0 0 100%';
                 imgContainer.style.scrollSnapAlign = 'start';
                 
+                
                 const img = document.createElement('img');
                 img.src = `/static/posts/${post.id}/${image}`;
-                img.style.width = '100%';
-                img.style.height = '100%';
+                // img.style.width = '100%';
+                // img.style.height = '100%';
                 img.style.objectFit = 'contain';
                 
                 imgContainer.appendChild(img);
