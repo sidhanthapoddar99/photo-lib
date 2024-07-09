@@ -134,9 +134,30 @@ function handleSwipe() {
 let scrollStartX = 0;
 let scrollEndX = 0;
 let isScrolling = false;
+let lastNavigationTime = 0;
+const navigationCooldown = 500; // 500ms cooldown between navigations
+
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+
+
 
 // Add mouse wheel event listener
 expandedPostContent.addEventListener('wheel', handleMouseScroll);
+
+
+
 
 // Add mousedown and mouseup event listeners to track horizontal scrolling
 expandedPostContent.addEventListener('mousedown', (e) => {
@@ -157,14 +178,20 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
+// Add debounced mouse wheel event listener
+expandedPostContent.addEventListener('wheel', debounce(handleMouseScroll, 50));
+
+
 function handleMouseScroll(e) {
-    e.preventDefault(); // Prevent default vertical scrolling
-
-    // Determine scroll direction
-    if (e.deltaX > 0) {
-        navigatePost(1); // Scroll right, go to next
-    } else if (e.deltaX < 0) {
-        navigatePost(-1); // Scroll left, go to previous
+    e.preventDefault();
+    const currentTime = new Date().getTime();
+    
+    if (currentTime - lastNavigationTime > navigationCooldown) {
+        if (e.deltaX > 0) {
+            navigatePost(1);
+        } else if (e.deltaX < 0) {
+            navigatePost(-1);
+        }
+        lastNavigationTime = currentTime;
     }
-
 }
