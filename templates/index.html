@@ -1,4 +1,3 @@
-# templates/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photo Library</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 <body>
     <div class="container">
         <h1>Photo Library</h1>
         <a href="{{ url_for('upload') }}">Upload New Post</a>
+
+        <br><br>
+
         <div class="grid">
             {% for post in posts %}
                 <div class="post" data-post-id="{{ post.id }}">
@@ -62,9 +65,18 @@
                 .then(post => {
                     expandedPostContent.innerHTML = '';
                     post.images.forEach(image => {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.style.flex = '0 0 100%';
+                        imgContainer.style.scrollSnapAlign = 'start';
+                        
                         const img = document.createElement('img');
                         img.src = `/static/posts/${post.id}/${image}`;
-                        expandedPostContent.appendChild(img);
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'contain';
+                        
+                        imgContainer.appendChild(img);
+                        expandedPostContent.appendChild(imgContainer);
                     });
         
                     expandedPost.style.display = 'flex';
@@ -77,8 +89,10 @@
         function navigatePost(direction) {
             const currentScroll = expandedPostContent.scrollLeft;
             const itemWidth = expandedPostContent.offsetWidth;
+            const targetScroll = currentScroll + direction * itemWidth;
+            
             expandedPostContent.scrollTo({
-                left: currentScroll + direction * itemWidth,
+                left: targetScroll,
                 behavior: 'smooth'
             });
         }

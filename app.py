@@ -13,7 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 @app.route('/')
 def index():
     posts = []
-    for folder in os.listdir(app.config['UPLOAD_FOLDER']):
+    folders = os.listdir(app.config['UPLOAD_FOLDER'])
+    folders.sort(key=lambda x: int(x), reverse=True )
+    for folder in folders:
         post_path = os.path.join(app.config['UPLOAD_FOLDER'], folder)
         if os.path.isdir(post_path):
             images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
@@ -32,7 +34,9 @@ def upload():
             logging.debug(f"Number of images received: {len(images_list)}")
 
             if images_list:
-                post_id = str(len(os.listdir(app.config['UPLOAD_FOLDER'])) + 1)
+                # post_id = str(len(os.listdir(app.config['UPLOAD_FOLDER'])) + 1)
+                post_id = max(map(int, os.listdir(app.config['UPLOAD_FOLDER'])), default=0) + 1
+                post_id = str(post_id)
                 post_folder = os.path.join(app.config['UPLOAD_FOLDER'], post_id)
                 os.makedirs(post_folder, exist_ok=True)
                 
@@ -94,4 +98,6 @@ def get_post(post_id):
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    app.run(debug=True)
+    
+    
+    app.run(host="0.0.0.0", port=2300 ,debug=True)
