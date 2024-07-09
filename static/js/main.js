@@ -5,6 +5,11 @@ const closeButton = document.querySelector('.close-button');
 const prevButton = document.querySelector('.prev-button');
 const nextButton = document.querySelector('.next-button');
 
+
+const imageCounter = document.querySelector('.image-counter');
+let currentImageIndex = 0;
+let totalImages = 0;
+
 grid.addEventListener('click', (e) => {
     const post = e.target.closest('.post');
     if (post) {
@@ -31,7 +36,10 @@ function fetchAndDisplayPost(postId) {
         })
         .then(post => {
             expandedPostContent.innerHTML = '';
-            post.images.forEach(image => {
+            totalImages = post.images.length;
+            currentImageIndex = 0;
+            
+            post.images.forEach((image, index) => {
                 const imgContainer = document.createElement('div');
                 imgContainer.style.flex = '0 0 100%';
                 imgContainer.style.scrollSnapAlign = 'start';
@@ -46,6 +54,7 @@ function fetchAndDisplayPost(postId) {
                 expandedPostContent.appendChild(imgContainer);
             });
 
+            updateImageCounter();
             expandedPost.style.display = 'flex';
         })
         .catch(error => {
@@ -65,6 +74,10 @@ function fetchAndDisplayPost(postId) {
 // }
 
 
+function updateImageCounter() {
+    imageCounter.textContent = `${currentImageIndex + 1}/${totalImages}`;
+}
+
 function navigatePost(direction) {
     const currentScroll = expandedPostContent.scrollLeft;
     const itemWidth = expandedPostContent.offsetWidth;
@@ -78,9 +91,18 @@ function navigatePost(direction) {
         left: targetScroll,
         behavior: 'smooth'
     });
+
+    // Update current image index
+    currentImageIndex = Math.round(targetScroll / itemWidth);
+    updateImageCounter();
 }
 
-
+// Add this to the existing scroll event listener or create a new one
+expandedPostContent.addEventListener('scroll', () => {
+    const itemWidth = expandedPostContent.offsetWidth;
+    currentImageIndex = Math.round(expandedPostContent.scrollLeft / itemWidth);
+    updateImageCounter();
+});
 
 // mobile swipe
 
@@ -107,51 +129,42 @@ function handleSwipe() {
 }
 
 
-// Vr joysticks
+// scroll left and right
 
-let joystickX = 0;
+let scrollStartX = 0;
+let scrollEndX = 0;
+let isScrolling = false;
 
-function updateVRControls(frame) {
-    if (frame.inputSources && frame.inputSources.length) {
-        const gamepad = frame.inputSources[0].gamepad;
-        if (gamepad && gamepad.axes.length >= 2) {
-            joystickX = gamepad.axes[0]; // Assuming X-axis is the first axis
-        }
+// Add mouse wheel event listener
+expandedPostContent.addEventListener('wheel', handleMouseScroll);
+
+// Add mousedown and mouseup event listeners to track horizontal scrolling
+expandedPostContent.addEventListener('mousedown', (e) => {
+    scrollStartX = e.clientX;
+    isScrolling = true;
+});
+
+document.addEventListener('mouseup', () => {
+    if (isScrolling) {
+        handleSwipe();
+        isScrolling = false;
     }
-}
+});
 
-function handleVRNavigation() {
-    const joystickThreshold = 0.5; // Threshold for joystick movement
-    if (joystickX > joystickThreshold) {
-        navigatePost(1); // Move right
-    } else if (joystickX < -joystickThreshold) {
-        navigatePost(-1); // Move left
+document.addEventListener('mousemove', (e) => {
+    if (isScrolling) {
+        scrollEndX = e.clientX;
     }
-}
+});
 
-// This function should be called in your VR animation loop
-function vrAnimationLoop() {
-    // Your existing VR rendering code here
-    
-    // Update VR controls
-    const frame = // Get the current VR frame
-    updateVRControls(frame);
-    handleVRNavigation();
-    
-    // Continue the animation loop
-    requestAnimationFrame(vrAnimationLoop);
-}
+function handleMouseScroll(e) {
+    e.preventDefault(); // Prevent default vertical scrolling
 
-// Start the VR animation loop when entering VR mode
-function onVRDisplayPresentChange() {
-    if (this.isPresenting) {
-        vrAnimationLoop();
+    // Determine scroll direction
+    if (e.deltaX > 0) {
+        navigatePost(1); // Scroll right, go to next
+    } else if (e.deltaX < 0) {
+        navigatePost(-1); // Scroll left, go to previous
     }
-}
 
-// Add event listener for VR presentation change
-if (navigator.xr) {
-    navigator.xr.addEventListener('sessionstart', onVRDisplayPresentChange);
-} else if (navigator.getVRDisplays) {
-    window.addEventListener('vrdisplaypresentchange', onVRDisplayPresentChange);
 }
