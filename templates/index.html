@@ -1,38 +1,87 @@
+# templates/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photo Library</title>
-    <style>
-        .post {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
-        .image-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-        }
-        .image-container img {
-            max-height: 300px;
-            width: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Photo Library</h1>
-    <a href="{{ url_for('upload') }}">Upload New Post</a>
-    {% for post in posts %}
-        <div class="post">
-            <h2>Post {{ post.id }}</h2>
-            <div class="image-container">
-                {% for image in post.images %}
-                    <img src="{{ url_for('static', filename='posts/' + post.id + '/' + image) }}" alt="Image {{ loop.index }}">
-                {% endfor %}
-            </div>
+    <div class="container">
+        <h1>Photo Library</h1>
+        <a href="{{ url_for('upload') }}">Upload New Post</a>
+        <div class="grid">
+            {% for post in posts %}
+                <div class="post" data-post-id="{{ post.id }}">
+                    <img src="{{ url_for('static', filename='posts/' + post.id + '/' + post.images[0]) }}" alt="Post {{ post.id }}">
+                </div>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
+
+    <div id="expanded-post" class="expanded-post" style="display: none;">
+        <button class="close-button">&times;</button>
+        <button class="nav-button prev-button">&lt;</button>
+        <div class="expanded-post-content"></div>
+        <button class="nav-button next-button">&gt;</button>
+    </div>
+
+    <script>
+        const grid = document.querySelector('.grid');
+        const expandedPost = document.getElementById('expanded-post');
+        const expandedPostContent = document.querySelector('.expanded-post-content');
+        const closeButton = document.querySelector('.close-button');
+        const prevButton = document.querySelector('.prev-button');
+        const nextButton = document.querySelector('.next-button');
+
+        grid.addEventListener('click', (e) => {
+            const post = e.target.closest('.post');
+            if (post) {
+                const postId = post.dataset.postId;
+                fetchAndDisplayPost(postId);
+            }
+        });
+
+        closeButton.addEventListener('click', () => {
+            expandedPost.style.display = 'none';
+        });
+
+        prevButton.addEventListener('click', () => navigatePost(-1));
+        nextButton.addEventListener('click', () => navigatePost(1));
+
+
+        function fetchAndDisplayPost(postId) {
+            fetch(`/api/posts/${postId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(post => {
+                    expandedPostContent.innerHTML = '';
+                    post.images.forEach(image => {
+                        const img = document.createElement('img');
+                        img.src = `/static/posts/${post.id}/${image}`;
+                        expandedPostContent.appendChild(img);
+                    });
+        
+                    expandedPost.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Failed to fetch post:', error);
+                });
+        }
+
+        function navigatePost(direction) {
+            const currentScroll = expandedPostContent.scrollLeft;
+            const itemWidth = expandedPostContent.offsetWidth;
+            expandedPostContent.scrollTo({
+                left: currentScroll + direction * itemWidth,
+                behavior: 'smooth'
+            });
+        }
+    </script>
 </body>
 </html>
