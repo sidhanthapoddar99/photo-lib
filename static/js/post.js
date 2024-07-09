@@ -9,25 +9,21 @@ const nextButton = document.querySelector('.next-button');
 const imageCounter = document.querySelector('.image-counter');
 let currentImageIndex = 0;
 let totalImages = 0;
-let postID = 0;
+let image_array = [];
 
-// grid.addEventListener('click', (e) => {
-//     const post = e.target.closest('.post');
-//     if (post) {
-//         const postId = post.dataset.postId;
-//         fetchAndDisplayPost(postId);
-//     }
-// });
-
-// closeButton.addEventListener('click', () => {
-//     expandedPost.style.display = 'none';
-// });
 
 prevButton.addEventListener('click', () => navigatePost(-1));
 nextButton.addEventListener('click', () => navigatePost(1));
 
 
-function set_image()
+function set_image(imaage_no){
+
+    imgContainer = image_array[imaage_no];
+    expandedPostContent.innerHTML = '';
+    expandedPostContent.appendChild(imgContainer);
+    console.log("called");
+
+}
 
 
 function fetchAndDisplayPost(postId) {
@@ -39,25 +35,20 @@ function fetchAndDisplayPost(postId) {
             return response.json();
         })
         .then(post => {
-            expandedPostContent.innerHTML = '';
+            
             totalImages = post.images.length;
             currentImageIndex = 0;
                         
             post.images.forEach((image, index) => {
 
-                const imgContainer = document.createElement('div');
-                imgContainer.style.flex = '0 0 100%';
-                imgContainer.style.scrollSnapAlign = 'start';
-                
-                
+                const imgContainer = document.createElement('div');                
                 const img = document.createElement('img');
                 img.src = `/static/posts/${post.id}/${image}`;
-                // img.style.width = '100%';
-                // img.style.height = '100%';
                 img.style.objectFit = 'contain';
-                
                 imgContainer.appendChild(img);
-                expandedPostContent.appendChild(imgContainer);
+                // image_array.push(imgContainer);
+                image_array.push(img);
+                set_image(0)
             });
 
             updateImageCounter();
@@ -75,27 +66,12 @@ function updateImageCounter() {
 }
 
 function navigatePost(direction) {
-    const currentScroll = expandedPostContent.scrollLeft;
-    const itemWidth = expandedPostContent.offsetWidth;
-    let targetScroll = currentScroll + direction * itemWidth;
-
-    // Ensure we don't scroll beyond the content
-    const maxScroll = expandedPostContent.scrollWidth - itemWidth;
-
-    
-
-    targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
-    // targetScroll = Math.max(0, targetScroll>maxScroll?0:targetScroll);
 
 
-
-    expandedPostContent.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-    });
-
+    currentImageIndex += direction;
+    currentImageIndex = currentImageIndex < 0 ? totalImages - 1 : currentImageIndex % totalImages;
     // Update current image index
-    currentImageIndex = Math.round(targetScroll / itemWidth);
+    set_image(currentImageIndex)
     updateImageCounter();
 }
 
