@@ -4,6 +4,8 @@ const expandedPostContent = document.querySelector('.expanded-post-content');
 const closeButton = document.querySelector('.close-button');
 const prevButton = document.querySelector('.prev-button');
 const nextButton = document.querySelector('.next-button');
+const nextPostButton = document.querySelector('.next-picture');
+const prevPostButton = document.querySelector('.prev-picture');
 
 
 const imageCounter = document.querySelector('.image-counter');
@@ -15,7 +17,11 @@ let currentPostId = 0;
 
 prevButton.addEventListener('click', () => navigatePost(-1));
 nextButton.addEventListener('click', () => navigatePost(1));
+prevPostButton.addEventListener('click', () => Change_Post(1));
+nextPostButton.addEventListener('click', () => Change_Post(-1));
 
+
+// ------------------------------------------------- Actions -------------------------------------------------------------
 
 function set_image(imaage_no){
 
@@ -89,7 +95,6 @@ function fetchAndDisplayPost(postId) {
 }
 
 
-
 function updateImageCounter() {
     imageCounter.textContent = `${currentImageIndex + 1}/${totalImages}`;
 }
@@ -103,6 +108,12 @@ function navigatePost(direction) {
     set_image(currentImageIndex)
     updateImageCounter();
 }
+
+
+//--------------------------------------------- mobile swipe and scroll ---------------------------------------------------
+
+
+
 
 // Add this to the existing scroll event listener or create a new one
 expandedPostContent.addEventListener('scroll', () => {
