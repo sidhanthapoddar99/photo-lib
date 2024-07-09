@@ -10,6 +10,7 @@ const imageCounter = document.querySelector('.image-counter');
 let currentImageIndex = 0;
 let totalImages = 0;
 let image_array = [];
+let currentPostId = 0;
 
 
 prevButton.addEventListener('click', () => navigatePost(-1));
@@ -26,7 +27,35 @@ function set_image(imaage_no){
 }
 
 
+function Change_Post(direction){
+
+    fetch(`/api/all_posts_list/${currentPostId}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(post => {
+
+        if(direction == 1 && post.next != currentPostId)
+            window.location.href = `/posts/${post.next}`;
+        else if(direction == -1 && post.prev != currentPostId)
+            window.location.href = `/posts/${post.prev}`;
+        else
+            console.log("No more post available");
+
+    })
+    .catch(error => {
+        console.error('Failed to fetch post:', error);
+    });
+}
+
+
 function fetchAndDisplayPost(postId) {
+
+    console.log("trying to change to -- ",postId);
+
     fetch(`/api/posts/${postId}`)
         .then(response => {
             if (!response.ok) {
@@ -38,7 +67,7 @@ function fetchAndDisplayPost(postId) {
             
             totalImages = post.images.length;
             currentImageIndex = 0;
-                        
+            currentPostId = postId;
             post.images.forEach((image, index) => {
 
                 const imgContainer = document.createElement('div');                

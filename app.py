@@ -86,6 +86,8 @@ def get_post_details():
     logging.debug(f"Posts found: {posts}")
     return posts
 
+
+
 @app.route('/api/posts/<post_id>', methods=['GET'])
 def get_post(post_id):
     posts = get_post_details()
@@ -103,6 +105,20 @@ def open_individual_post(id):
     # images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
     return render_template('individual_post.html', id=id)
 
+@app.route('/api/all_posts_list/<current_post_id>', methods=['GET'])
+def get_all_posts_list(current_post_id):
+    posts = os.listdir(app.config['UPLOAD_FOLDER'])
+    posts = sorted(posts, key=lambda x: int(x))
+    # get one before and one after 
+    if current_post_id not in posts:
+        return jsonify({'error': 'Post not found'}), 404
+    
+    current_index = posts.index(current_post_id)
+    prev_post = posts[current_index - 1] if current_index > 0 else current_post_id
+    next_post = posts[current_index + 1] if current_index < len(posts) - 1 else current_post_id
+    
+    #send the current post and the next and previous post
+    return jsonify({'current': current_post_id, 'prev': prev_post, 'next': next_post})
 
 
 if __name__ == '__main__':
