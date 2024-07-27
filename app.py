@@ -6,9 +6,17 @@ import base64
 import json
 import logging
 
+
+
+routes_of_all_volts = {
+                        "Secure": 'static/posts',
+                        "Locked" : 'static/posts_nsfw'
+                    }
+
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/posts'
+app.config['UPLOAD_FOLDER'] = routes_of_all_volts["Secure"]
 logging.basicConfig(level=logging.DEBUG)
+passaword_69 = "69"
 
 @app.route('/')
 def index():
@@ -21,7 +29,39 @@ def index():
             images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
             posts.append({'id': folder, 'images': images})
     logging.debug(f"Posts found: {posts}")
-    return render_template('index.html', posts=posts)
+    return render_template('index.html', posts=posts, voltname=str(app.config['UPLOAD_FOLDER']).lstrip("static/"))
+
+##################################################################################################################
+###################################### Volt and Secure ###########################################################
+##################################################################################################################
+
+
+@app.route('/secure_volt/', methods=['GET', 'POST'])
+def secure_volt():
+    
+    if request.method == 'POST':
+        
+        password = request.form.get('Password')
+        print(password)
+        if password == passaword_69:
+            app.config['UPLOAD_FOLDER'] = routes_of_all_volts["Locked"]
+        
+        return redirect(url_for('index'))
+    
+    return render_template('secure.html')
+
+
+@app.route('/lock_volt/', methods=['GET'])
+def lock_volt():
+    app.config['UPLOAD_FOLDER'] = routes_of_all_volts["Secure"]
+    return redirect(url_for('index'))
+
+
+
+##################################################################################################################
+###################################### Upload and File ###########################################################
+##################################################################################################################
+
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -63,6 +103,8 @@ def upload():
 
     return render_template('upload.html')
 
+
+
 def get_extension(image):
     if image.format == 'JPEG':
         return '.jpg'
@@ -71,9 +113,19 @@ def get_extension(image):
     else:
         return '.jpg'  # Default to jpg if format is unknown
 
+
+
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory(app.static_folder, filename)
+
+
+
+
+##################################################################################################################
+###################################### Post Details ##############################################################
+##################################################################################################################
+
 
 
 def get_post_details():
@@ -81,7 +133,8 @@ def get_post_details():
     for folder in os.listdir(app.config['UPLOAD_FOLDER']):
         post_path = os.path.join(app.config['UPLOAD_FOLDER'], folder)
         if os.path.isdir(post_path):
-            images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
+            images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))],
+                            key=lambda x: int(x.split('.')[0]))
             posts[folder] = {'id': folder, 'images': images}
     logging.debug(f"Posts found: {posts}")
     return posts
@@ -103,7 +156,9 @@ def get_post(post_id):
 def open_individual_post(id):
     post_path = os.path.join(app.config['UPLOAD_FOLDER'], id)
     # images = sorted([f for f in os.listdir(post_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
-    return render_template('individual_post.html', id=id)
+    return render_template('individual_post.html', id=id, volt_name = str(app.config['UPLOAD_FOLDER']).lstrip("static/"))
+
+
 
 @app.route('/api/all_posts_list/<current_post_id>', methods=['GET'])
 def get_all_posts_list(current_post_id):
@@ -119,6 +174,13 @@ def get_all_posts_list(current_post_id):
     
     #send the current post and the next and previous post
     return jsonify({'current': current_post_id, 'prev': prev_post, 'next': next_post})
+
+
+
+
+##################################################################################################################
+###################################### Main Function #############################################################
+##################################################################################################################
 
 
 if __name__ == '__main__':

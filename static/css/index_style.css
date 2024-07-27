@@ -27,6 +27,25 @@ a[href*="upload"]:hover {
 }
 
 
+a[href*="secure_volt"] {
+    background-color: #a41d35; /* Green background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for a larger click area and more space inside */
+    text-align: center; /* Center the text */
+    text-decoration: none; /* Remove underline from links */
+    display: inline-block; /* Allow setting dimensions */
+    font-size: 16px; /* Increase font size */
+    margin: 4px 2px; /* Some margin for spacing */
+    cursor: pointer; /* Change mouse cursor to indicate clickable */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+a[href*="secure_volt"]:hover {
+    background-color: #5945a0; /* Darker shade of green on hover */
+}
+
+
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

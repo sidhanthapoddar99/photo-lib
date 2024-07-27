@@ -1,3 +1,5 @@
+// import {  updateNavVisibility } from "./slider";
+
 // DOM elements
 const expandedPost = document.getElementById('expanded-post');
 const expandedPostContent = document.querySelector('.expanded-post-content');
@@ -43,6 +45,8 @@ function setImage(imageIndex) {
     expandedPostContent.innerHTML = '';
     expandedPostContent.appendChild(imageArray[imageIndex]);
     updateImageCounter();
+    update_visibility_wrapped();
+
 }
 
 function changePost(direction) {
@@ -68,7 +72,7 @@ function fetchAndDisplayPost(postId) {
             currentPostId = postId;
             imageArray = post.images.map(image => {
                 const img = document.createElement('img');
-                img.src = `/static/posts/${post.id}/${image}`;
+                img.src = `/static/${volt_name}/${post.id}/${image}`;
                 img.style.objectFit = 'contain';
                 return img;
             });

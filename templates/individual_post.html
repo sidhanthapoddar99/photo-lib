@@ -13,13 +13,23 @@
 
     <div id="expanded-post" class="expanded-post" >
         <div class="navigation_blocks" style="justify-content:flex-end">
+            <div class="navigation_blocks">
+                <label class="switch">
+                <input type="checkbox" id="navToggle">
+                <span class="slider round"></span>
+                </label>
+                <!-- ... existing close button ... -->
+            </div>
+
             <a href={{ url_for("index") }}><button class="close-button">&times;</button></a>
         </div>
 
         <div class="photo-level-2">
             <div class="photo-level-1">
                 <button class="nav-button prev-button">&lt;</button>
-                <div class="expanded-post-content"></div>            
+                <div class="expanded-post-content">
+                    <img>
+                </div>            
                 <button class="nav-button next-button">&gt;</button>
             </div>
             <div class="picture-change-l2">
@@ -31,16 +41,18 @@
         <div class="image-counter"></div>
     
 </div>
-
+    
+    <script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+    
     <script src="{{ url_for('static', filename='js/post.js') }}"></script>
 
     <script>
-
         var post_id = {{id}};
+        var volt_name ="{{volt_name}}";
         fetchAndDisplayPost(post_id);
-
-
     </script>
+
+    
 
 </body>
 </html>
